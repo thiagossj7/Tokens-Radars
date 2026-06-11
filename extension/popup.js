@@ -29,6 +29,8 @@ const overlayMensaje    = document.getElementById('overlay-mensaje');
 
 // Guarda si el usuario cerró el overlay con ✕ en esta apertura del popup
 let overlayDismissed = false;
+// Evita que dispararRuptura corra en paralelo si el usuario actualiza mientras anima
+let rupturaEnCurso = false;
 
 // Calcula el texto "se reinicia en X h Y min" a partir de un epoch en segundos
 function textoReset(epochSeg) {
@@ -62,7 +64,8 @@ function animarBarra(fillEl, pctEl, util, delayMs) {
   const targetPct  = Math.min(util * 100, 100);
   const displayFinal = (util * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
 
-  // Reset sin animación
+  // Cancelar animación previa para que fill:'forwards' no bloquee el reset
+  fillEl.getAnimations().forEach(a => a.cancel());
   fillEl.style.width = '0%';
   pctEl.textContent  = '0%';
 
@@ -98,6 +101,9 @@ function animarBarra(fillEl, pctEl, util, delayMs) {
 // Secuencia de ruptura encadenada con await .finished (sin setTimeout).
 // barrasCriticas: array de { grupoEl, nombre } para las barras que superaron el 90%.
 async function dispararRuptura(barrasCriticas) {
+  if (rupturaEnCurso) return;
+  rupturaEnCurso = true;
+  try {
   // 1. Flash rojo en el borde del grupo de cada barra crítica
   const pulsos = barrasCriticas.map(({ grupoEl }) =>
     grupoEl.animate(
@@ -113,6 +119,7 @@ async function dispararRuptura(barrasCriticas) {
 
   // 2. La imagen de Vegeta pulsa en rojo
   const vegetaImg = document.querySelector('.vegeta-img');
+  if (!vegetaImg) return;
   const pulsoVegeta = vegetaImg.animate(
     [
       { filter: 'drop-shadow(0 0 12px rgba(59,130,246,0.35))' },
@@ -134,6 +141,9 @@ async function dispararRuptura(barrasCriticas) {
     [{ opacity: '0' }, { opacity: '1' }],
     { duration: 400, fill: 'forwards' }
   );
+  } finally {
+    rupturaEnCurso = false;
+  }
 }
 
 // Pinta ambas barras con los datos recibidos
