@@ -85,11 +85,17 @@ function consultarUso(token) {
       const representativeClaim = h['anthropic-ratelimit-unified-representative-claim'] ?? null;
       const overage = h['anthropic-ratelimit-unified-overage-status'] ?? null;
 
-      if (res.statusCode === 400 || res.statusCode === 401) {
+      if (res.statusCode === 401) {
+        res.resume();
+        reject(new Error('Tu sesión de Claude Code expiró. Abre una terminal y corre `claude` para renovar el token, luego reinicia el servidor.'));
+        return;
+      }
+
+      if (res.statusCode === 400) {
         let body = '';
         res.on('data', (chunk) => (body += chunk));
         res.on('end', () => {
-          reject(new Error(`API devolvió ${res.statusCode}: ${body}`));
+          reject(new Error(`Error 400 de la API: ${body}`));
         });
         return;
       }
