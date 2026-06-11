@@ -17,10 +17,18 @@ const rellenoSesion = document.getElementById('relleno-sesion');
 const resetSesion  = document.getElementById('reset-sesion');
 
 // Elementos de la barra Semanal
-const grupSemana   = document.getElementById('grupo-semana');
-const pctSemana    = document.getElementById('pct-semana');
+const grupSemana    = document.getElementById('grupo-semana');
+const pctSemana     = document.getElementById('pct-semana');
 const rellenoSemana = document.getElementById('relleno-semana');
-const resetSemana  = document.getElementById('reset-semana');
+const resetSemana   = document.getElementById('reset-semana');
+
+// Overlay de ruptura
+const overlayEl         = document.getElementById('overlay-ruptura');
+const btnCerrarOverlay  = document.getElementById('btn-cerrar-overlay');
+const overlayMensaje    = document.getElementById('overlay-mensaje');
+
+// Guarda si el usuario cerró el overlay con ✕ en esta apertura del popup
+let overlayDismissed = false;
 
 // Calcula el texto "se reinicia en X h Y min" a partir de un epoch en segundos
 function textoReset(epochSeg) {
@@ -48,19 +56,84 @@ function textoActualizado(isoString) {
   return `actualizado hace ${horas} h`;
 }
 
-// Aplica el color correcto a porcentaje y relleno según el valor
-function aplicarColor(pctEl, rellenoEl, valor) {
-  // Limpiar clases previas
-  pctEl.classList.remove('alerta', 'critica');
-  rellenoEl.classList.remove('alerta', 'critica');
+// Anima una barra desde 0% hasta su valor real usando Web Animations API.
+// Corre un contador visual en paralelo con requestAnimationFrame.
+function animarBarra(fillEl, pctEl, util, delayMs) {
+  const targetPct  = Math.min(util * 100, 100);
+  const displayFinal = (util * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
 
-  if (valor >= 1.0) {
+  // Reset sin animación
+  fillEl.style.width = '0%';
+  pctEl.textContent  = '0%';
+
+  // Clases de color según umbral
+  fillEl.classList.remove('alerta', 'critica');
+  pctEl.classList.remove('alerta', 'critica');
+  if (util >= 1.0) {
+    fillEl.classList.add('critica');
     pctEl.classList.add('critica');
-    rellenoEl.classList.add('critica');
-  } else if (valor >= 0.8) {
+  } else if (util >= 0.8) {
+    fillEl.classList.add('alerta');
     pctEl.classList.add('alerta');
-    rellenoEl.classList.add('alerta');
   }
+
+  // Animación de la barra (Web Animations API)
+  fillEl.animate(
+    [{ width: '0%' }, { width: targetPct + '%' }],
+    { duration: 900, easing: 'ease-in-out', fill: 'forwards', delay: delayMs }
+  );
+
+  // Contador visual del porcentaje en paralelo
+  const startTime = performance.now() + delayMs;
+  function tick(now) {
+    if (now < startTime) { requestAnimationFrame(tick); return; }
+    const p = Math.min((now - startTime) / 900, 1);
+    pctEl.textContent = Math.round(p * util * 100) + '%';
+    if (p < 1) requestAnimationFrame(tick);
+    else pctEl.textContent = displayFinal;
+  }
+  requestAnimationFrame(tick);
+}
+
+// Secuencia de ruptura encadenada con await .finished (sin setTimeout).
+// barrasCriticas: array de { grupoEl, nombre } para las barras que superaron el 90%.
+async function dispararRuptura(barrasCriticas) {
+  // 1. Flash rojo en el borde del grupo de cada barra crítica
+  const pulsos = barrasCriticas.map(({ grupoEl }) =>
+    grupoEl.animate(
+      [
+        { boxShadow: 'none',                            borderColor: '#1e1e4a' },
+        { boxShadow: '0 0 16px rgba(239,68,68,0.85)',   borderColor: '#ef4444' },
+        { boxShadow: 'none',                            borderColor: '#1e1e4a' },
+      ],
+      { duration: 400, iterations: 2 }
+    )
+  );
+  await Promise.all(pulsos.map(p => p.finished));
+
+  // 2. La imagen de Vegeta pulsa en rojo
+  const vegetaImg = document.querySelector('.vegeta-img');
+  const pulsoVegeta = vegetaImg.animate(
+    [
+      { filter: 'drop-shadow(0 0 12px rgba(59,130,246,0.35))' },
+      { filter: 'drop-shadow(0 0 22px rgba(239,68,68,1))'     },
+      { filter: 'drop-shadow(0 0 12px rgba(59,130,246,0.35))' },
+    ],
+    { duration: 300, iterations: 3 }
+  );
+  await pulsoVegeta.finished;
+
+  // 3. Mostrar overlay (solo si el usuario no lo cerró ya en esta sesión)
+  if (overlayDismissed) return;
+
+  const nombres = barrasCriticas.map(b => b.nombre);
+  overlayMensaje.textContent = nombres.join(' y ') + ' al límite ⚠';
+
+  overlayEl.classList.remove('oculto');
+  overlayEl.animate(
+    [{ opacity: '0' }, { opacity: '1' }],
+    { duration: 400, fill: 'forwards' }
+  );
 }
 
 // Pinta ambas barras con los datos recibidos
@@ -68,37 +141,30 @@ function pintarDatos(datos) {
   panelError.classList.add('oculto');
   panelUso.classList.remove('oculto');
 
-  const { session, week, representativeClaim, overage, updatedAt } = datos;
+  const { session, week, representativeClaim, updatedAt } = datos;
 
-  // ── Sesión ──────────────────────────────────────────
   const utilSesion = session?.utilization ?? 0;
-  const pctTextoSesion = (utilSesion * 100).toFixed(1) + '%';
-  pctSesion.textContent = utilSesion > 1
-    ? pctTextoSesion + ' ⚠'
-    : pctTextoSesion;
-  rellenoSesion.style.width = Math.min(utilSesion * 100, 100) + '%';
-  aplicarColor(pctSesion, rellenoSesion, utilSesion);
-  resetSesion.textContent = textoReset(session?.reset);
-
-  // ── Semanal ─────────────────────────────────────────
   const utilSemana = week?.utilization ?? 0;
-  const pctTextoSemana = (utilSemana * 100).toFixed(1) + '%';
-  pctSemana.textContent = utilSemana > 1
-    ? pctTextoSemana + ' ⚠'
-    : pctTextoSemana;
-  rellenoSemana.style.width = Math.min(utilSemana * 100, 100) + '%';
-  aplicarColor(pctSemana, rellenoSemana, utilSemana);
-  resetSemana.textContent = textoReset(week?.reset);
 
-  // ── Resaltar la barra que actualmente limita ─────────
+  // Textos de reset y representative claim
+  resetSesion.textContent = textoReset(session?.reset);
+  resetSemana.textContent = textoReset(week?.reset);
   grupSesion.classList.toggle('activa', representativeClaim === 'five_hour');
   grupSemana.classList.toggle('activa', representativeClaim === 'seven_day');
 
-  // ── Timestamp ────────────────────────────────────────
+  // Timestamp
   txtActualizado.textContent = textoActualizado(updatedAt);
-  if (datos.cached) {
-    txtActualizado.textContent += ' (caché)';
-  }
+  if (datos.cached) txtActualizado.textContent += ' (caché)';
+
+  // Animar barras con Web Animations API (semanal con 150 ms de desfase)
+  animarBarra(rellenoSesion, pctSesion, utilSesion, 0);
+  animarBarra(rellenoSemana, pctSemana, utilSemana, 150);
+
+  // Detectar barras que superan el 90% y disparar ruptura
+  const criticas = [];
+  if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
+  if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
+  if (criticas.length > 0) dispararRuptura(criticas);
 }
 
 // Muestra un mensaje de error en el panel de error
@@ -144,3 +210,12 @@ cargarUso(false);
 
 // Botón Actualizar: fuerza una lectura nueva
 btnActualizar.addEventListener('click', () => cargarUso(true));
+
+// Botón ✕ del overlay: lo cierra con fade-out y no vuelve a aparecer en esta sesión
+btnCerrarOverlay.addEventListener('click', () => {
+  overlayDismissed = true;
+  overlayEl.animate(
+    [{ opacity: '1' }, { opacity: '0' }],
+    { duration: 300, fill: 'forwards' }
+  ).finished.then(() => overlayEl.classList.add('oculto'));
+});
