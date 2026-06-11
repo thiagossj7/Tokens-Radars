@@ -136,6 +136,12 @@ async function dispararRuptura(barrasCriticas) {
   const nombres = barrasCriticas.map(b => b.nombre);
   overlayMensaje.textContent = nombres.join(' y ') + ' al límite ⚠';
 
+  // GIF según qué barra disparó: semanal → over.gif, sesión → vegeta-scanning.gif
+  const soloSemanal = barrasCriticas.length === 1 && barrasCriticas[0].nombre === 'Semanal';
+  document.getElementById('overlay-gif').src = soloSemanal
+    ? 'images/over.gif'
+    : 'images/vegeta-scanning.gif';
+
   overlayEl.classList.remove('oculto');
   overlayEl.animate(
     [{ opacity: '0' }, { opacity: '1' }],
