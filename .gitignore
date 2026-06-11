@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+*.log
+
+# Nunca subir credenciales — el token de Claude Code es secreto
+.credentials.json
+credentials.json
+*.credentials.*
+*.token
+.env

@@ -1,0 +1,12 @@
+{
+  "name": "radar-vegeta-server",
+  "version": "1.0.0",
+  "description": "Servidor local que expone el uso del plan de Claude vía headers OAuth",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

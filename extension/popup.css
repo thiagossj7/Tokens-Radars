@@ -1,0 +1,219 @@
+/* ── Variables de color ────────────────────────────── */
+:root {
+  --fondo:        #0d0d1a;
+  --fondo-panel:  #12122a;
+  --borde:        #1e1e4a;
+  --azul:         #3b82f6;
+  --azul-glow:    rgba(59, 130, 246, 0.35);
+  --dorado:       #f59e0b;
+  --dorado-glow:  rgba(245, 158, 11, 0.4);
+  --verde:        #22c55e;
+  --naranja:      #f97316;
+  --rojo:         #ef4444;
+  --rojo-glow:    rgba(239, 68, 68, 0.45);
+  --texto:        #e2e8f0;
+  --texto-tenue:  #64748b;
+  --resaltado:    #1e3a5f;    /* fondo de la barra activa (representative claim) */
+}
+
+/* ── Reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 300px;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── Contenedor principal ───────────────────────────── */
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px 12px;
+  gap: 12px;
+}
+
+/* ── Vegeta ─────────────────────────────────────────── */
+.vegeta-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 0;
+}
+
+.vegeta-img {
+  height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px var(--azul-glow));
+}
+
+/* ── Título ─────────────────────────────────────────── */
+.titulo {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--dorado);
+  text-shadow: 0 0 8px var(--dorado-glow);
+  text-align: center;
+}
+
+/* ── Panel de uso ───────────────────────────────────── */
+#panel-uso {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Grupo de barra ─────────────────────────────────── */
+.barra-grupo {
+  background: var(--fondo-panel);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* La barra que actualmente limita se resalta */
+.barra-grupo.activa {
+  border-color: var(--dorado);
+  box-shadow: 0 0 8px var(--dorado-glow);
+  background: var(--resaltado);
+}
+
+.barra-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.barra-etiqueta {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--texto);
+}
+
+.ventana {
+  font-weight: 400;
+  font-size: 10px;
+  color: var(--texto-tenue);
+  margin-left: 3px;
+}
+
+.barra-pct {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--azul);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+
+.barra-pct.alerta  { color: var(--naranja); }
+.barra-pct.critica { color: var(--rojo); text-shadow: 0 0 6px var(--rojo-glow); }
+
+/* ── Pista y relleno ────────────────────────────────── */
+.barra-pista {
+  width: 100%;
+  height: 8px;
+  background: #1e1e3a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  background: var(--azul);
+  box-shadow: 0 0 6px var(--azul-glow);
+  transition: width 0.5s ease, background-color 0.3s;
+}
+
+.barra-relleno.alerta  { background: var(--naranja); box-shadow: none; }
+.barra-relleno.critica { background: var(--rojo);    box-shadow: 0 0 8px var(--rojo-glow); }
+
+/* ── Texto de reset ─────────────────────────────────── */
+.barra-reset {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--texto-tenue);
+  min-height: 13px;
+}
+
+/* ── Panel de error ─────────────────────────────────── */
+#panel-error {
+  width: 100%;
+  background: #1a0a0a;
+  border: 1px solid #4a1a1a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #fca5a5;
+  line-height: 1.5;
+}
+
+/* ── Pie ─────────────────────────────────────────────── */
+.pie {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.actualizado {
+  font-size: 10px;
+  color: var(--texto-tenue);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Botón Actualizar ───────────────────────────────── */
+#btn-actualizar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: #1e1e4a;
+  border: 1px solid var(--azul);
+  border-radius: 6px;
+  color: var(--azul);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+#btn-actualizar:hover:not(:disabled) {
+  background: #263a6e;
+  box-shadow: 0 0 8px var(--azul-glow);
+}
+
+#btn-actualizar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#icono-btn {
+  display: inline-block;
+  transition: transform 0.6s linear;
+}
+
+#icono-btn.girando {
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utilidad ───────────────────────────────────────── */
+.oculto { display: none !important; }

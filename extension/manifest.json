@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Radar de Tokens — Vegeta",
+  "version": "2.0.0",
+  "description": "Muestra tu uso del plan de Claude (sesión 5h y semana 7d) con Vegeta vigilando.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icono.png",
+      "32": "images/icono.png",
+      "48": "images/icono.png",
+      "128": "images/icono.png"
+    }
+  },
+  "icons": {
+    "16": "images/icono.png",
+    "32": "images/icono.png",
+    "48": "images/icono.png",
+    "128": "images/icono.png"
+  },
+  "host_permissions": [
+    "http://localhost:37123/*"
+  ]
+}
