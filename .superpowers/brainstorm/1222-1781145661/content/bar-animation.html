@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>Animación de barras</title>
+<style>
+  body { background: #0d0d1a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; padding: 24px; margin: 0; }
+  h2 { color: #f59e0b; letter-spacing: 2px; text-align: center; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #64748b; margin-bottom: 32px; font-size: 14px; }
+
+  .cards { display: flex; flex-direction: column; gap: 20px; max-width: 560px; margin: 0 auto; }
+
+  .card {
+    background: #12122a;
+    border: 2px solid #1e1e4a;
+    border-radius: 12px;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover { border-color: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,.3); }
+  .card.selected { border-color: #f59e0b; box-shadow: 0 0 16px rgba(245,158,11,.4); }
+
+  .card-label { font-size: 11px; letter-spacing: 3px; color: #64748b; margin-bottom: 4px; }
+  .card-title { font-size: 16px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+  .card-desc  { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+
+  /* Barra demo */
+  .demo-wrap { margin-top: 8px; }
+  .demo-label { font-size: 11px; color: #64748b; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .track { background: #1e1e3a; border-radius: 6px; height: 10px; overflow: hidden; }
+  .fill {
+    height: 100%;
+    border-radius: 6px;
+    background: #3b82f6;
+    box-shadow: 0 0 6px rgba(59,130,246,.4);
+    width: 0%;
+  }
+
+  /* Estilos de animación */
+  .fill.snap   { transition: width .35s cubic-bezier(0.22, 1, 0.36, 1); }
+  .fill.smooth { transition: width .9s ease-in-out; }
+  .fill.epic   { transition: width 1.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  .fill.alerta { background: #f97316; }
+  .fill.critica { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,.6); }
+
+  .replay-btn {
+    margin-top: 12px;
+    background: none;
+    border: 1px solid #1e1e4a;
+    color: #64748b;
+    font-size: 11px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .replay-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+
+  .hint { text-align: center; color: #475569; font-size: 12px; margin-top: 28px; }
+</style>
+</head>
+<body>
+
+<h2>¿Cómo deben animar las barras al abrir el popup?</h2>
+<p class="subtitle">Pulsa ▶ en cada opción para ver la animación. Haz clic en la tarjeta para seleccionarla.</p>
+
+<div class="cards">
+
+  <!-- Opción A: Snappy -->
+  <div class="card" id="card-a" onclick="selectCard('a')">
+    <div class="card-label">OPCIÓN A</div>
+    <div class="card-title">Rápida y directa</div>
+    <div class="card-desc">Las barras suben de golpe en ~0.35 s. Sensación instantánea, sin demoras.</div>
+    <div class="demo-wrap">
+      <div class="demo-label"><span>Sesión (5h)</span><span id="pct-a">0%</span></div>
+      <div class="track"><div class="fill snap" id="fill-a"></div></div>
+      <div style="margin-top:8px" class="demo-label"><span>Semanal (7d)</span><span id="pct-a2">0%</span></div>
+      <div class="track"><div class="fill snap alerta" id="fill-a2"></div></div>
+    </div>
+    <button class="replay-btn" onclick="event.stopPropagation(); playAnim('a')">▶ Reproducir</button>
+  </div>
+
+  <!-- Opción B: Suave -->
+  <div class="card" id="card-b" onclick="selectCard('b')">
+    <div class="card-label">OPCIÓN B</div>
+    <div class="card-title">Suave y fluida</div>
+    <div class="card-desc">Sube en ~0.9 s con ease-in-out. Sensación pulida y moderna.</div>
+    <div class="demo-wrap">
+      <div class="demo-label"><span>Sesión (5h)</span><span id="pct-b">0%</span></div>
+      <div class="track"><div class="fill smooth" id="fill-b"></div></div>
+      <div style="margin-top:8px" class="demo-label"><span>Semanal (7d)</span><span id="pct-b2">0%</span></div>
+      <div class="track"><div class="fill smooth alerta" id="fill-b2"></div></div>
+    </div>
+    <button class="replay-btn" onclick="event.stopPropagation(); playAnim('b')">▶ Reproducir</button>
+  </div>
+
+  <!-- Opción C: Épica -->
+  <div class="card" id="card-c" onclick="selectCard('c')">
+    <div class="card-label">OPCIÓN C</div>
+    <div class="card-title">Épica con rebote</div>
+    <div class="card-desc">Sube en ~1.6 s con un pequeño rebote al llegar. Más dramática y de personaje.</div>
+    <div class="demo-wrap">
+      <div class="demo-label"><span>Sesión (5h)</span><span id="pct-c">0%</span></div>
+      <div class="track"><div class="fill epic" id="fill-c"></div></div>
+      <div style="margin-top:8px" class="demo-label"><span>Semanal (7d)</span><span id="pct-c2">0%</span></div>
+      <div class="track"><div class="fill epic alerta" id="fill-c2"></div></div>
+    </div>
+    <button class="replay-btn" onclick="event.stopPropagation(); playAnim('c')">▶ Reproducir</button>
+  </div>
+
+</div>
+
+<p class="hint">Puedes combinar velocidades distintas para sesión y semanal si quieres — dímelo en el chat.</p>
+
+<script>
+  const targets = { a: [32, 78], b: [32, 78], c: [32, 78] };
+
+  function animFill(fillEl, pctEl, target, delay) {
+    fillEl.style.transition = 'none';
+    fillEl.style.width = '0%';
+    pctEl.textContent = '0%';
+    void fillEl.offsetWidth;
+
+    setTimeout(() => {
+      fillEl.style.transition = '';
+      fillEl.style.width = target + '%';
+      // contador
+      const start = performance.now();
+      const dur = parseFloat(getComputedStyle(fillEl).transitionDuration) * 1000;
+      function tick(now) {
+        const p = Math.min((now - start) / dur, 1);
+        pctEl.textContent = Math.round(p * target) + '%';
+        if (p < 1) requestAnimationFrame(tick);
+        else pctEl.textContent = target + '%';
+      }
+      requestAnimationFrame(tick);
+    }, delay);
+  }
+
+  function playAnim(key) {
+    const [t1, t2] = targets[key];
+    animFill(document.getElementById('fill-' + key),   document.getElementById('pct-' + key),  t1, 0);
+    animFill(document.getElementById('fill-' + key + '2'), document.getElementById('pct-' + key + '2'), t2, 150);
+  }
+
+  function selectCard(key) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-' + key).classList.add('selected');
+    if (window.recordChoice) recordChoice(key, document.querySelector('#card-' + key + ' .card-title').textContent);
+  }
+
+  // Auto-reproducir al cargar con delay escalonado
+  setTimeout(() => playAnim('a'), 400);
+  setTimeout(() => playAnim('b'), 600);
+  setTimeout(() => playAnim('c'), 800);
+</script>
+</body>
+</html>
