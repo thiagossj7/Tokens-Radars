@@ -2,6 +2,12 @@ node_modules/
 npm-debug.log*
 *.log
 
+# Node portable descargado por instalar.ps1 — cada usuario descarga el suyo
+server/node.exe
+
+# Estado temporal de herramientas de desarrollo
+.superpowers/
+
 # Nunca subir credenciales — el token de Claude Code es secreto
 .credentials.json
 credentials.json

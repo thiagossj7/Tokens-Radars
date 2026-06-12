@@ -1,16 +1,15 @@
-﻿const express = require('express');
+// Radar de Tokens — servidor local sin dependencias (solo módulos nativos de Node).
+//
+// AVISO: las cabeceras `anthropic-ratelimit-unified-*` que lee este servidor NO son
+// oficiales — fueron descubiertas por ingeniería inversa del protocolo OAuth de
+// Claude Code y pueden cambiar o desaparecer sin previo aviso.
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 const os = require('os');
 
-const app = express();
 const PORT = 37123;
-
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
 
 let cache = { data: null, timestamp: 0 };
 const CACHE_TTL_MS = 60 * 1000;
@@ -129,13 +128,17 @@ function consultarUso(token) {
   });
 }
 
-app.get('/usage', async (req, res) => {
-  const forzar = req.query.force === 'true';
-  const ahora  = Date.now();
+function responderJson(res, objeto) {
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+  res.end(JSON.stringify(objeto));
+}
+
+async function manejarUsage(res, forzar) {
+  const ahora = Date.now();
   if (!forzar && cache.data && ahora - cache.timestamp < CACHE_TTL_MS)
-    return res.json(Object.assign({}, cache.data, { cached: true }));
+    return responderJson(res, Object.assign({}, cache.data, { cached: true }));
   const creds = leerCredenciales();
-  if (!creds) return res.json({
+  if (!creds) return responderJson(res, {
     session: null, week: null, representativeClaim: null, overage: null,
     updatedAt: new Date().toISOString(), cached: false,
     error: 'No se encontro token. Corre claude en la terminal.',
@@ -147,9 +150,9 @@ app.get('/usage', async (req, res) => {
   }
   const enviar = (datos) => {
     const r = Object.assign({}, datos, { updatedAt: new Date().toISOString(), cached: false, error: null });
-    cache.data = r; cache.timestamp = ahora; return res.json(r);
+    cache.data = r; cache.timestamp = ahora; return responderJson(res, r);
   };
-  const errorJson = (msg) => res.json({
+  const errorJson = (msg) => responderJson(res, {
     session: null, week: null, representativeClaim: null, overage: null,
     updatedAt: new Date().toISOString(), cached: false, error: msg,
   });
@@ -164,6 +167,25 @@ app.get('/usage', async (req, res) => {
       ? 'Sesion expirada. Corre claude en la terminal.'
       : err.message);
   }
+}
+
+const servidor = http.createServer((req, res) => {
+  const url = new URL(req.url, 'http://localhost:' + PORT);
+  if (url.pathname !== '/usage') {
+    res.writeHead(404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ error: 'Ruta no encontrada. Usa /usage' }));
+    return;
+  }
+  manejarUsage(res, url.searchParams.get('force') === 'true')
+    .catch((err) => responderJson(res, {
+      session: null, week: null, representativeClaim: null, overage: null,
+      updatedAt: new Date().toISOString(), cached: false, error: err.message,
+    }));
 });
 
-app.listen(PORT, () => console.log('Servidor de uso en http://localhost:' + PORT + ' — deja esta ventana abierta.'));
+servidor.listen(PORT, () => console.log('Servidor de uso en http://localhost:' + PORT));
+servidor.on('error', (err) => {
+  // Si ya hay otra instancia (p. ej. la tarea programada), salir en silencio sin error
+  if (err.code === 'EADDRINUSE') { console.log('Ya hay un servidor en el puerto ' + PORT + '; cerrando esta instancia.'); process.exit(0); }
+  throw err;
+});

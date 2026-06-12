@@ -18,38 +18,27 @@ El proyecto tiene dos piezas:
 
 ## Requisitos
 
-- **Node.js** — [nodejs.org](https://nodejs.org) (cualquier versión LTS)
 - **Google Chrome**
-- **Claude Code** instalado y con sesión iniciada — corre `claude` en la terminal al menos una vez para generar el token en `~/.claude/.credentials.json`
+- **Una cuenta de Claude** (plan Pro/Max) — la extensión muestra el uso de *tu* plan
+
+No hace falta tener Node.js ni Claude Code instalados: el instalador se encarga de ambos.
 
 ---
 
-## Instalación
+## Instalación (un clic)
 
-### Paso 1 — Instalar dependencias del servidor
+### Paso 1 — Ejecutar el instalador
 
-Abre una terminal, navega a la carpeta `server/` y ejecuta:
+Haz **doble clic en `instalar.bat`** (en la raíz del proyecto). El instalador:
 
-```bash
-cd server
-npm install
-```
+1. Busca Node.js; si no está, **descarga un `node.exe` portable oficial** (~83 MB) dentro de `server/` — sin permisos de administrador y sin instalar nada en el sistema.
+2. Busca tus credenciales de Claude; si faltan, **instala Claude Code** con el instalador oficial de Anthropic y abre una ventana para que inicies sesión (espera hasta que termines el login).
+3. Registra el **arranque automático invisible**: el servidor se inicia solo en cada inicio de sesión de Windows, sin ninguna ventana.
+4. Arranca el servidor de inmediato y verifica que `http://localhost:37123/usage` responde.
 
-Solo hace falta hacerlo una vez.
+El servidor no tiene dependencias (`npm install` ya no existe en este proyecto): es un único `server.js` que solo usa módulos nativos de Node.
 
-### Paso 2 — Arrancar el servidor
-
-```bash
-npm start
-```
-
-Verás: `Servidor de uso en http://localhost:37123 — deja esta ventana abierta.`
-
-Para verificar que funciona, abre en el navegador: `http://localhost:37123/usage`
-
-Deberías ver un JSON con los campos `session`, `week`, `updatedAt`, etc.
-
-### Paso 3 — Cargar la extensión en Chrome
+### Paso 2 — Cargar la extensión en Chrome
 
 1. Abre `chrome://extensions`
 2. Activa **"Modo de desarrollador"** (interruptor en la esquina superior derecha)
@@ -57,6 +46,10 @@ Deberías ver un JSON con los campos `session`, `week`, `updatedAt`, etc.
 4. Selecciona la carpeta `extension/` de este proyecto
 
 El icono del radar aparecerá en la barra de Chrome. Púlsalo para ver tus barras de uso.
+
+### Alternativa manual (sin instalador)
+
+Si prefieres no usar `instalar.bat`: con Node instalado, corre `cd server && npm start` y deja la ventana abierta (el bloque de PowerShell de la sección de arranque automático registra la versión invisible).
 
 ---
 
@@ -69,9 +62,11 @@ El icono del radar aparecerá en la barra de Chrome. Púlsalo para ver tus barra
 
 ---
 
-## Arranque automático con Windows
+## Arranque automático con Windows (sin ventana)
 
-Para que el servidor inicie solo al encender el PC sin necesidad de abrir una terminal:
+**`instalar.bat` ya configura esto automáticamente** — esta sección es solo para quien instaló a mano.
+
+El servidor inicia solo al iniciar sesión, **en segundo plano y sin abrir ninguna ventana de consola**. El truco es que la tarea programada no ejecuta Node directamente, sino el lanzador `server/start-hidden.vbs`, que arranca Node con la ventana oculta (y usa el `node.exe` portable de `server/` si existe).
 
 1. Abre **PowerShell** (puede ser normal, no hace falta administrador).
 2. Navega a la carpeta `server/`:
@@ -80,15 +75,19 @@ Para que el servidor inicie solo al encender el PC sin necesidad de abrir una te
    ```
 3. Ejecuta este bloque — detecta la ruta automáticamente desde donde estás:
    ```powershell
-   $node = (Get-Command node).Source
-   $ruta = $PWD.Path
-   $accion = New-ScheduledTaskAction -Execute $node -Argument "server.js" -WorkingDirectory $ruta
+   $vbs = Join-Path $PWD.Path "start-hidden.vbs"
+   $accion = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$vbs`"" -WorkingDirectory $PWD.Path
    $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-   $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+   $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
    Register-ScheduledTask -TaskName "RadarDeTokens" -Action $accion -Trigger $trigger -Settings $settings -Force
    ```
 
-El servidor arrancará en segundo plano la próxima vez que inicies sesión en Windows.
+El servidor arrancará invisible la próxima vez que inicies sesión en Windows. Si arrancas otro `npm start` a mano mientras tanto, la segunda instancia detecta el puerto ocupado y se cierra sola sin error.
+
+**Para detenerlo manualmente:** abre el Administrador de tareas, busca el proceso `node.exe` y termínalo, o ejecuta en PowerShell:
+```powershell
+Get-NetTCPConnection -LocalPort 37123 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess }
+```
 
 **Para verificar que está activo:** abre el Programador de tareas (`taskschd.msc`) y busca `RadarDeTokens`.
 
@@ -98,11 +97,9 @@ El servidor arrancará en segundo plano la próxima vez que inicies sesión en W
 
 ```bash
 git pull
-cd server
-npm install   # solo si cambiaron las dependencias
 ```
 
-Luego, si el servidor está corriendo, reinícialo (`Ctrl+C` y `npm start` de nuevo). En Chrome, ve a `chrome://extensions` y pulsa el botón **↻** de la extensión para recargarla.
+No hay dependencias que reinstalar. Si el servidor está corriendo, reinícialo (mata el proceso `node` o reinicia Windows). En Chrome, ve a `chrome://extensions` y pulsa el botón **↻** de la extensión para recargarla.
 
 Si usas arranque automático, reinicia la tarea desde el Programador de tareas o reinicia Windows.
 
@@ -126,12 +123,12 @@ Unregister-ScheduledTask -TaskName "RadarDeTokens" -Confirm:$false
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| El popup muestra "No se puede conectar con el servidor" | El servidor no está corriendo | Abre una terminal, ve a `server/` y corre `npm start` |
+| El popup muestra "No se puede conectar con el servidor" | El servidor no está corriendo | Ejecuta `instalar.bat` de nuevo, o abre una terminal en `server/` y corre `node server.js` |
 | El popup muestra "No se encontró un token de Claude Code válido" | No has iniciado sesión en Claude Code | Corre `claude` en la terminal y sigue el proceso de login |
 | El popup muestra el error pero el servidor sí está corriendo | Token OAuth vencido | Corre `claude` en la terminal para refrescar la sesión |
 | `http://localhost:37123/usage` devuelve error de conexión | Otro proceso usa el puerto 37123 | Cambia `PORT` en `server/server.js` y actualiza `popup.js` con el nuevo puerto |
 | Las barras muestran 0% aunque uses Claude activamente | Las cabeceras de uso no vinieron en la respuesta | Estas cabeceras no son oficiales y pueden variar; intenta pulsar ↻ Actualizar varias veces |
-| `npm install` falla | Versión de Node.js incompatible | Actualiza Node.js a la versión LTS más reciente |
+| El instalador no descarga Node | Sin conexión o firewall bloqueando nodejs.org | Descarga `node.exe` (win-x64) de [nodejs.org/dist/latest-v22.x](https://nodejs.org/dist/latest-v22.x/win-x64/) y ponlo en `server/` |
 
 ---
 
