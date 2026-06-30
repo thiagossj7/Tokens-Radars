@@ -29,12 +29,13 @@ No hace falta tener Node.js ni Claude Code instalados: el instalador se encarga 
 
 ### Paso 1 — Ejecutar el instalador
 
-Haz **doble clic en `instalar.bat`** (en la raíz del proyecto). El instalador:
+Haz **doble clic en `RadarDeTokens-Setup.exe`** (en la raíz del proyecto). Es un instalador gráfico nativo (sin ninguna ventana de consola en ningún momento) que:
 
-1. Busca Node.js; si no está, **descarga un `node.exe` portable oficial** (~83 MB) dentro de `server/` — sin permisos de administrador y sin instalar nada en el sistema.
-2. Busca tus credenciales de Claude; si faltan, **instala Claude Code** con el instalador oficial de Anthropic y abre una ventana para que inicies sesión (espera hasta que termines el login).
-3. Registra el **arranque automático invisible**: el servidor se inicia solo en cada inicio de sesión de Windows, sin ninguna ventana.
-4. Arranca el servidor de inmediato y verifica que `http://localhost:37123/usage` responde.
+1. Copia el servidor y la extensión a `%LocalAppData%\RadarDeTokens\`.
+2. Busca Node.js; si no está, **descarga un `node.exe` portable oficial** (~83 MB) — sin permisos de administrador y sin instalar nada más en el sistema.
+3. Busca tus credenciales de Claude; si faltan, instala Claude Code y espera tu login en el navegador (la pantalla de progreso avanza sola en cuanto detecta la sesión).
+4. Registra el **arranque automático invisible**: el servidor se inicia solo en cada inicio de sesión de Windows, sin ninguna ventana.
+5. Arranca el servidor de inmediato y muestra tu % de uso actual en la pantalla final.
 
 El servidor no tiene dependencias (`npm install` ya no existe en este proyecto): es un único `server.js` que solo usa módulos nativos de Node.
 
@@ -43,13 +44,13 @@ El servidor no tiene dependencias (`npm install` ya no existe en este proyecto):
 1. Abre `chrome://extensions`
 2. Activa **"Modo de desarrollador"** (interruptor en la esquina superior derecha)
 3. Pulsa **"Cargar descomprimida"**
-4. Selecciona la carpeta `extension/` de este proyecto
+4. Selecciona la carpeta `extension/` dentro de `%LocalAppData%\RadarDeTokens\` (la pantalla final del instalador tiene un botón para abrirla directo)
 
 El icono del radar aparecerá en la barra de Chrome. Púlsalo para ver tus barras de uso.
 
 ### Alternativa manual (sin instalador)
 
-Si prefieres no usar `instalar.bat`: con Node instalado, corre `cd server && npm start` y deja la ventana abierta (el bloque de PowerShell de la sección de arranque automático registra la versión invisible).
+Si preferís no usar `RadarDeTokens-Setup.exe`: con Node instalado, corre `cd server && npm start` desde una copia del repo y deja la ventana abierta (el bloque de PowerShell de la sección de arranque automático registra la versión invisible).
 
 ---
 
@@ -64,7 +65,7 @@ Si prefieres no usar `instalar.bat`: con Node instalado, corre `cd server && npm
 
 ## Arranque automático con Windows (sin ventana)
 
-**`instalar.bat` ya configura esto automáticamente** — esta sección es solo para quien instaló a mano.
+**`RadarDeTokens-Setup.exe` ya configura esto automáticamente** — esta sección es solo para quien instaló a mano.
 
 El servidor inicia solo al iniciar sesión, **en segundo plano y sin abrir ninguna ventana de consola**. El truco es que la tarea programada no ejecuta Node directamente, sino el lanzador `server/start-hidden.vbs`, que arranca Node con la ventana oculta (y usa el `node.exe` portable de `server/` si existe).
 
@@ -109,13 +110,15 @@ Si usas arranque automático, reinicia la tarea desde el Programador de tareas o
 
 **Quitar la extensión:** en `chrome://extensions`, busca "Radar de Tokens" y pulsa **Eliminar**.
 
-**Detener y eliminar el arranque automático** (si lo configuraste):
+**Si instalaste con `RadarDeTokens-Setup.exe`:** andá a "Agregar o quitar programas" de Windows, buscá "Radar de Tokens" y desinstalalo. Eso detiene el servidor, borra la tarea programada y elimina `%LocalAppData%\RadarDeTokens\` completa.
+
+**Si instalaste a mano:** detené y eliminá el arranque automático con
 
 ```powershell
 Unregister-ScheduledTask -TaskName "RadarDeTokens" -Confirm:$false
 ```
 
-**Eliminar el servidor:** simplemente borra la carpeta `radar-vegeta-tokens/`.
+y borrá la carpeta del repo.
 
 ---
 
@@ -123,12 +126,12 @@ Unregister-ScheduledTask -TaskName "RadarDeTokens" -Confirm:$false
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| El popup muestra "No se puede conectar con el servidor" | El servidor no está corriendo | Ejecuta `instalar.bat` de nuevo, o abre una terminal en `server/` y corre `node server.js` |
+| El popup muestra "No se puede conectar con el servidor" | El servidor no está corriendo | Volvé a correr `RadarDeTokens-Setup.exe`, o abre una terminal en `server/` y corre `node server.js` |
 | El popup muestra "No se encontró un token de Claude Code válido" | No has iniciado sesión en Claude Code | Corre `claude` en la terminal y sigue el proceso de login |
 | El popup muestra el error pero el servidor sí está corriendo | Token OAuth vencido | Corre `claude` en la terminal para refrescar la sesión |
 | `http://localhost:37123/usage` devuelve error de conexión | Otro proceso usa el puerto 37123 | Cambia `PORT` en `server/server.js` y actualiza `popup.js` con el nuevo puerto |
 | Las barras muestran 0% aunque uses Claude activamente | Las cabeceras de uso no vinieron en la respuesta | Estas cabeceras no son oficiales y pueden variar; intenta pulsar ↻ Actualizar varias veces |
-| El instalador no descarga Node | Sin conexión o firewall bloqueando nodejs.org | Descarga `node.exe` (win-x64) de [nodejs.org/dist/latest-v22.x](https://nodejs.org/dist/latest-v22.x/win-x64/) y ponlo en `server/` |
+| El instalador no descarga Node | Sin conexión o firewall bloqueando nodejs.org | Descarga `node.exe` (win-x64) de [nodejs.org/dist/latest-v22.x](https://nodejs.org/dist/latest-v22.x/win-x64/) y ponlo en `server/` (o en `%LocalAppData%\RadarDeTokens\server\` si ya instalaste) |
 
 ---
 
