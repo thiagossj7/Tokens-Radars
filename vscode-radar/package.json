@@ -4,15 +4,30 @@
   "description": "Muestra tu uso del plan de Claude (sesión 5h y semana 7d) en la barra de estado.",
   "version": "1.0.0",
   "publisher": "radar-tokens",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Other"],
-  "activationEvents": [ "onStartupFinished" ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "radar.refresh", "title": "Radar: Actualizar uso" },
-      { "command": "radar.showPanel", "title": "Radar: Mostrar panel" },
-      { "command": "radar.closePanel", "title": "Radar: Cerrar panel" }
+      {
+        "command": "radar.refresh",
+        "title": "Radar: Actualizar uso"
+      },
+      {
+        "command": "radar.showPanel",
+        "title": "Radar: Mostrar panel"
+      },
+      {
+        "command": "radar.closePanel",
+        "title": "Radar: Cerrar panel"
+      }
     ]
   },
   "scripts": {
@@ -21,6 +36,7 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.0"
   }
