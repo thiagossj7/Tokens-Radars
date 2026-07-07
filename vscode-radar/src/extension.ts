@@ -8,6 +8,7 @@ let statusBarItem: vscode.StatusBarItem;
 let pollTimer: NodeJS.Timeout | undefined;
 let webviewPanel: vscode.WebviewPanel | undefined;
 let datosActuales: DatosUso | null = null;
+let extensionPath: string;
 
 function textoReset(epochSeg: number): string {
   if (!epochSeg) return '';
@@ -28,11 +29,8 @@ function actualizarStatusBar(datos: DatosUso) {
   }
   const s = datos.session?.utilization ?? 0;
   const w = datos.week?.utilization ?? 0;
-  const claim = datos.representativeClaim;
-  const primero = claim === 'seven_day' ? w : s;
-  const segundo = claim === 'seven_day' ? s : w;
   const warning = (s >= 1 || w >= 1) ? ' ⚠' : '';
-  statusBarItem.text = `$(graph) ${(primero * 100).toFixed(0)}% · ${(segundo * 100).toFixed(0)}%${warning}`;
+  statusBarItem.text = `$(graph) Claude S:${(s * 100).toFixed(0)}% W:${(w * 100).toFixed(0)}%${warning}`;
   if (s >= 1 || w >= 1) {
     statusBarItem.color = '#ef4444';
   } else if (s >= 0.8 || w >= 0.8) {
@@ -76,8 +74,6 @@ function abrirPanel(ruptura = false) {
     }
     return;
   }
-  const extensionPath = vscode.extensions.getExtension('radar-tokens-vegeta')
-    ?.extensionPath || path.join(__dirname, '..');
   const webviewPath = path.join(extensionPath, 'out', 'webview');
   webviewPanel = vscode.window.createWebviewPanel(
     'radarTokens',
@@ -91,8 +87,20 @@ function abrirPanel(ruptura = false) {
   );
   const htmlFilePath = path.join(webviewPath, 'panel.html');
   let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
-  const webviewUri = webviewPanel.webview.asWebviewUri(vscode.Uri.file(webviewPath));
-  htmlContent = htmlContent.replace(/\$\{webviewUri\}/g, webviewUri.toString());
+  const { webview } = webviewPanel;
+  const cspSource = webview.cspSource;
+  const cssUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewPath, 'panel.css')));
+  const jsUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewPath, 'panel.js')));
+  const vegetaUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewPath, 'vegeta.webp')));
+  const overGifUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewPath, 'over.gif')));
+  const scanGifUri = webview.asWebviewUri(vscode.Uri.file(path.join(webviewPath, 'vegeta-scanning.gif')));
+  htmlContent = htmlContent
+    .replace(/\$\{cspSource\}/g, cspSource)
+    .replace(/\$\{cssUri\}/g, cssUri.toString())
+    .replace(/\$\{jsUri\}/g, jsUri.toString())
+    .replace(/\$\{vegetaUri\}/g, vegetaUri.toString())
+    .replace(/\$\{overGifUri\}/g, overGifUri.toString())
+    .replace(/\$\{scanGifUri\}/g, scanGifUri.toString());
   webviewPanel.webview.html = htmlContent;
   webviewPanel.onDidDispose(() => { webviewPanel = undefined; });
   webviewPanel.webview.onDidReceiveMessage((msg) => {
@@ -111,6 +119,7 @@ function cerrarPanel() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  extensionPath = context.extensionPath;
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   statusBarItem.text = '$(sync~spin) Radar...';
   statusBarItem.tooltip = 'Consultando uso de Claude...';

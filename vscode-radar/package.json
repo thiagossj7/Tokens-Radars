@@ -3,7 +3,7 @@
   "displayName": "Radar de Tokens — Vegeta",
   "description": "Muestra tu uso del plan de Claude (sesión 5h y semana 7d) en la barra de estado.",
   "version": "1.0.0",
-  "publisher": "radar-tokens",
+  "publisher": "kodevo",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -34,7 +34,7 @@
     "vscode:prepublish": "npm run compile && npm run cp:webview && npm run cp:assets",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "cp:webview": "copyfiles -u 1 \"src/webview/**/*.css\" \"src/webview/**/*.html\" \"src/webview/**/*.js\" out/",
+    "cp:webview": "copyfiles -u 2 \"src/webview/**/*.css\" \"src/webview/**/*.html\" \"src/webview/**/*.js\" out/webview/",
     "cp:assets": "copyfiles -u 1 \"assets/*\" \"out/webview/\""
   },
   "devDependencies": {

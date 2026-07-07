@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webviewUri}; img-src ${webviewUri}; script-src 'unsafe-inline' ${webviewUri};">
-  <link rel="stylesheet" href="${webviewUri}/panel.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource}; img-src ${cspSource}; script-src 'unsafe-inline' ${cspSource};">
+  <link rel="stylesheet" href="${cssUri}">
   <title>Radar de Tokens</title>
 </head>
 <body>
@@ -12,7 +12,7 @@
 
     <!-- Vegeta -->
     <div class="vegeta-wrap">
-      <img src="${webviewUri}/vegeta.webp" alt="Vegeta" class="vegeta-img">
+      <img src="${vegetaUri}" alt="Vegeta" class="vegeta-img">
     </div>
 
     <!-- Título -->
@@ -70,8 +70,9 @@
   </div>
 
   <script>
-    window.webviewUri = "${webviewUri}";
+    window.overGifUri = "${overGifUri}";
+    window.scanGifUri = "${scanGifUri}";
   </script>
-  <script src="${webviewUri}/panel.js"></script>
+  <script src="${jsUri}"></script>
 </body>
 </html>
