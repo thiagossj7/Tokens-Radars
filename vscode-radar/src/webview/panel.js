@@ -116,6 +116,7 @@ async function dispararRuptura(barrasCriticas) {
 }
 
 function pintarDatos(datos) {
+  iconoBtn.classList.remove('girando');
   panelError.classList.add('oculto');
   panelUso.classList.remove('oculto');
   const { session, week, representativeClaim, updatedAt } = datos;
@@ -136,6 +137,7 @@ function pintarDatos(datos) {
 }
 
 function mostrarError(mensaje) {
+  iconoBtn.classList.remove('girando');
   panelUso.classList.add('oculto');
   panelError.classList.remove('oculto');
   msgError.textContent = mensaje;
