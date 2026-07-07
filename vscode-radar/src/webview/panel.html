@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webviewUri}; img-src ${webviewUri}; script-src 'unsafe-inline';">
+  <link rel="stylesheet" href="${webviewUri}/panel.css">
+  <title>Radar de Tokens</title>
+</head>
+<body>
+  <div class="contenedor">
+
+    <!-- Vegeta -->
+    <div class="vegeta-wrap">
+      <img src="${webviewUri}/vegeta.webp" alt="Vegeta" class="vegeta-img">
+    </div>
+
+    <!-- Título -->
+    <h1 class="titulo">POWER LEVEL</h1>
+
+    <!-- Panel de uso -->
+    <div id="panel-uso">
+
+      <!-- Barra Sesión -->
+      <div class="barra-grupo" id="grupo-sesion">
+        <div class="barra-encabezado">
+          <span class="barra-etiqueta">Sesión <span class="ventana">(5 h)</span></span>
+          <span class="barra-pct" id="pct-sesion">—</span>
+        </div>
+        <div class="barra-pista">
+          <div class="barra-relleno" id="relleno-sesion"></div>
+        </div>
+        <div class="barra-reset" id="reset-sesion"></div>
+      </div>
+
+      <!-- Barra Semanal -->
+      <div class="barra-grupo" id="grupo-semana">
+        <div class="barra-encabezado">
+          <span class="barra-etiqueta">Semanal <span class="ventana">(7 d)</span></span>
+          <span class="barra-pct" id="pct-semana">—</span>
+        </div>
+        <div class="barra-pista">
+          <div class="barra-relleno" id="relleno-semana"></div>
+        </div>
+        <div class="barra-reset" id="reset-semana"></div>
+      </div>
+
+    </div>
+
+    <!-- Error / sin servidor -->
+    <div id="panel-error" class="oculto">
+      <p id="msg-error"></p>
+    </div>
+
+    <!-- Pie: botón + timestamp -->
+    <div class="pie">
+      <span class="actualizado" id="actualizado">—</span>
+      <button id="btn-actualizar" title="Reintentar">
+        <span id="icono-btn">↻</span> Reintentar
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Overlay de ruptura -->
+  <div id="overlay-ruptura" class="oculto">
+    <button id="btn-cerrar-overlay" title="Cerrar">✕</button>
+    <img id="overlay-gif" src="" alt="Vegeta escaneando">
+    <p id="overlay-mensaje"></p>
+  </div>
+
+  <script>
+    window.webviewUri = "${webviewUri}";
+  </script>
+  <script src="${webviewUri}/panel.js"></script>
+</body>
+</html>
