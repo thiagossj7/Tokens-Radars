@@ -6,7 +6,7 @@ Monitor your Claude plan usage directly from VS Code. Two progress bars **Sessio
 
 ---
 
-**Support the project:** [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/kodevo)
+**Support the project:** [![ko-fi](https://ko-fi.com/img/githubbutton_sm.png)](https://ko-fi.com/kodevo)
 
 ---
 
@@ -129,5 +129,5 @@ See the [GitHub repository](https://github.com/thiagossj7/Tokens-Radars) for the
 
 ---
 
-**Support the project:** [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/kodevo)
+**Support the project:** [![ko-fi](https://ko-fi.com/img/githubbutton_sm.png)](https://ko-fi.com/kodevo)
 

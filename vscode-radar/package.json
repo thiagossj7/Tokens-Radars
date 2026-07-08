@@ -4,6 +4,7 @@
   "description": "Muestra tu uso del plan de Claude (sesiÃ³n 5h y semana 7d) en la barra de estado con Vegeta vigilando.",
   "version": "1.0.0",
   "publisher": "kodevo",
+  "license": "MIT",
   "icon": "assets/icono-128.png",
   "engines": {
     "vscode": "^1.85.0"
