@@ -1,8 +1,8 @@
 ﻿# Claude Sayayin Token Radar
 
-<video src="https://github.com/thiagossj7/Tokens-Radars/raw/main/vscode-radar/assets/video_readme.mp4" controls width="100%"></video>
+![Radar de Tokens en acción](https://github.com/thiagossj7/Tokens-Radars/raw/main/vscode-radar/assets/render_readme.png)
 
-Monitor your Claude plan usage directly from VS Code. Two progress bars **Session (5-hour window)** and **Weekly (7-day window)** â€” with Vegeta watching over your consumption.
+Monitor your Claude plan usage directly from VS Code. Two progress bars **Session (5-hour window)** and **Weekly (7-day window)**  with Vegeta watching over your consumption.
 
 ---
 
