@@ -32,6 +32,18 @@ let overlayDismissed = false;
 // Evita que dispararRuptura corra en paralelo si el usuario actualiza mientras anima
 let rupturaEnCurso = false;
 
+// Persiste en localStorage si ya se mostró la ruptura (para no repetir entre aperturas)
+const STORAGE_FLAG = 'rdt_ruptura_mostrada';
+function rupturaYaMostrada() {
+  return localStorage.getItem(STORAGE_FLAG) === 'true';
+}
+function marcarRupturaMostrada() {
+  localStorage.setItem(STORAGE_FLAG, 'true');
+}
+function limpiarRupturaMostrada() {
+  localStorage.removeItem(STORAGE_FLAG);
+}
+
 // Calcula el texto "se reinicia en X h Y min" a partir de un epoch en segundos
 function textoReset(epochSeg) {
   if (!epochSeg) return '';
@@ -147,6 +159,9 @@ async function dispararRuptura(barrasCriticas) {
     [{ opacity: '0' }, { opacity: '1' }],
     { duration: 400, fill: 'forwards' }
   );
+
+  // Marcar en localStorage para no repetir la ruptura en futuras aperturas
+  marcarRupturaMostrada();
   } finally {
     rupturaEnCurso = false;
   }
@@ -176,11 +191,18 @@ function pintarDatos(datos) {
   animarBarra(rellenoSesion, pctSesion, utilSesion, 0);
   animarBarra(rellenoSemana, pctSemana, utilSemana, 150);
 
-  // Detectar barras que superan el 90% y disparar ruptura
-  const criticas = [];
-  if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
-  if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
-  if (criticas.length > 0) dispararRuptura(criticas);
+  // Si ambas barras están bajo el 90%, limpiar el marcador para permitir re-disparo
+  if (utilSesion < 0.9 && utilSemana < 0.9) {
+    limpiarRupturaMostrada();
+  }
+
+  // Detectar barras que superan el 90% y disparar ruptura (solo si no se mostró ya)
+  if (!rupturaYaMostrada()) {
+    const criticas = [];
+    if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
+    if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
+    if (criticas.length > 0) dispararRuptura(criticas);
+  }
 }
 
 // Muestra un mensaje de error en el panel de error
