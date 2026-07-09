@@ -9,6 +9,7 @@ let pollTimer: NodeJS.Timeout | undefined;
 let webviewPanel: vscode.WebviewPanel | undefined;
 let datosActuales: DatosUso | null = null;
 let extensionPath: string;
+let rupturaRevelada = false; // track if panel was revealed for current breach
 
 function textoReset(epochSeg: number): string {
   if (!epochSeg) return '';
@@ -53,9 +54,15 @@ async function refrescarUso(forzar = false) {
   datosActuales = datos;
   actualizarStatusBar(datos);
   if (debeDispararRuptura(datos)) {
-    abrirPanel(true);
-  } else if (webviewPanel) {
-    enviarDatosAlPanel(datos);
+    if (!rupturaRevelada) {
+      rupturaRevelada = true;
+      abrirPanel(true);
+    } else if (webviewPanel) {
+      enviarDatosAlPanel(datos);
+    }
+  } else {
+    rupturaRevelada = false;
+    if (webviewPanel) enviarDatosAlPanel(datos);
   }
 }
 

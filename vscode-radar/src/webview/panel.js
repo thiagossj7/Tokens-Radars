@@ -20,6 +20,7 @@ const overlayMensaje = document.getElementById('overlay-mensaje');
 
 let overlayDismissed = false;
 let rupturaEnCurso = false;
+let umbralMostrado = 0; // 0 = none, 0.9 = showed at 90%, 1.0 = showed at 100%
 
 function textoReset(epochSeg) {
   if (!epochSeg) return '';
@@ -44,7 +45,8 @@ function textoActualizado(isoString) {
 
 function animarBarra(fillEl, pctEl, util, delayMs) {
   const targetPct = Math.min(util * 100, 100);
-  const displayFinal = (util * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
+  const capped = Math.min(util, 1);
+  const displayFinal = (capped * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
   fillEl.getAnimations().forEach(a => a.cancel());
   fillEl.style.width = '0%';
   pctEl.textContent = '0%';
@@ -130,10 +132,19 @@ function pintarDatos(datos) {
   if (datos.cached) txtActualizado.textContent += ' (caché)';
   animarBarra(rellenoSesion, pctSesion, utilSesion, 0);
   animarBarra(rellenoSemana, pctSemana, utilSemana, 150);
+
+  const maxUtil = Math.max(utilSesion, utilSemana);
+  if (maxUtil < 0.9) umbralMostrado = 0;
+
   const criticas = [];
   if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
   if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
-  if (criticas.length > 0) dispararRuptura(criticas);
+
+  const nuevoUmbral = maxUtil >= 1.0 ? 1.0 : maxUtil >= 0.9 ? 0.9 : 0;
+  if (nuevoUmbral > umbralMostrado && criticas.length > 0) {
+    umbralMostrado = nuevoUmbral;
+    dispararRuptura(criticas);
+  }
 }
 
 function mostrarError(mensaje) {
@@ -156,10 +167,16 @@ window.addEventListener('message', (event) => {
   if (msg.type === 'rupture') {
     const s = msg.data?.session?.utilization ?? 0;
     const w = msg.data?.week?.utilization ?? 0;
+    const maxUtil = Math.max(s, w);
+    if (maxUtil < 0.9) umbralMostrado = 0;
     const criticas = [];
     if (s >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
     if (w >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
-    if (criticas.length > 0) dispararRuptura(criticas);
+    const nuevoUmbral = maxUtil >= 1.0 ? 1.0 : maxUtil >= 0.9 ? 0.9 : 0;
+    if (nuevoUmbral > umbralMostrado && criticas.length > 0) {
+      umbralMostrado = nuevoUmbral;
+      dispararRuptura(criticas);
+    }
   }
 });
 

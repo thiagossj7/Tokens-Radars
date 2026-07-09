@@ -32,16 +32,16 @@ let overlayDismissed = false;
 // Evita que dispararRuptura corra en paralelo si el usuario actualiza mientras anima
 let rupturaEnCurso = false;
 
-// Persiste en localStorage si ya se mostró la ruptura (para no repetir entre aperturas)
-const STORAGE_FLAG = 'rdt_ruptura_mostrada';
-function rupturaYaMostrada() {
-  return localStorage.getItem(STORAGE_FLAG) === 'true';
+// Persiste en localStorage el umbral de ruptura mostrado (0, 0.9, 1.0) entre aperturas
+const STORAGE_UMBRAL = 'rdt_umbral_mostrado';
+function getUmbralMostrado() {
+  return parseFloat(localStorage.getItem(STORAGE_UMBRAL) || '0');
 }
-function marcarRupturaMostrada() {
-  localStorage.setItem(STORAGE_FLAG, 'true');
+function setUmbralMostrado(val) {
+  localStorage.setItem(STORAGE_UMBRAL, String(val));
 }
-function limpiarRupturaMostrada() {
-  localStorage.removeItem(STORAGE_FLAG);
+function clearUmbralMostrado() {
+  localStorage.removeItem(STORAGE_UMBRAL);
 }
 
 // Calcula el texto "se reinicia en X h Y min" a partir de un epoch en segundos
@@ -74,7 +74,8 @@ function textoActualizado(isoString) {
 // Corre un contador visual en paralelo con requestAnimationFrame.
 function animarBarra(fillEl, pctEl, util, delayMs) {
   const targetPct  = Math.min(util * 100, 100);
-  const displayFinal = (util * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
+  const capped = Math.min(util, 1);
+  const displayFinal = (capped * 100).toFixed(1) + '%' + (util > 1 ? ' ⚠' : '');
 
   // Cancelar animación previa para que fill:'forwards' no bloquee el reset
   fillEl.getAnimations().forEach(a => a.cancel());
@@ -160,8 +161,6 @@ async function dispararRuptura(barrasCriticas) {
     { duration: 400, fill: 'forwards' }
   );
 
-  // Marcar en localStorage para no repetir la ruptura en futuras aperturas
-  marcarRupturaMostrada();
   } finally {
     rupturaEnCurso = false;
   }
@@ -191,17 +190,22 @@ function pintarDatos(datos) {
   animarBarra(rellenoSesion, pctSesion, utilSesion, 0);
   animarBarra(rellenoSemana, pctSemana, utilSemana, 150);
 
-  // Si ambas barras están bajo el 90%, limpiar el marcador para permitir re-disparo
-  if (utilSesion < 0.9 && utilSemana < 0.9) {
-    limpiarRupturaMostrada();
+  // Umbral-based rupture: show once at 90%, once at 100%
+  const maxUtil = Math.max(utilSesion, utilSemana);
+  const umbralActual = getUmbralMostrado();
+
+  if (maxUtil < 0.9) {
+    clearUmbralMostrado();
   }
 
-  // Detectar barras que superan el 90% y disparar ruptura (solo si no se mostró ya)
-  if (!rupturaYaMostrada()) {
-    const criticas = [];
-    if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
-    if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
-    if (criticas.length > 0) dispararRuptura(criticas);
+  const criticas = [];
+  if (utilSesion >= 0.9) criticas.push({ grupoEl: grupSesion, nombre: 'Sesión' });
+  if (utilSemana >= 0.9) criticas.push({ grupoEl: grupSemana, nombre: 'Semanal' });
+
+  const nuevoUmbral = maxUtil >= 1.0 ? 1.0 : maxUtil >= 0.9 ? 0.9 : 0;
+  if (nuevoUmbral > umbralActual && criticas.length > 0) {
+    setUmbralMostrado(nuevoUmbral);
+    dispararRuptura(criticas);
   }
 }
 
