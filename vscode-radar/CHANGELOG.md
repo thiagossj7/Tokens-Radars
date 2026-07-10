@@ -8,7 +8,7 @@
 - Panel is no longer forcibly brought to front on every poll tick
 
 ### Changed
-- Percentage display capped at 100.0% to avoid showing unrealistic values
+- Percentage display capped at 100.0% in animating counter, final text and VS Code status bar to avoid showing unrealistic values
 - Old `rupturaYaMostrada` localStorage flag replaced by numeric `rdt_umbral_mostrado` (0, 0.9, 1.0) to support two-tier trigger
 
 ## 1.0.0 — 2025-07-07
