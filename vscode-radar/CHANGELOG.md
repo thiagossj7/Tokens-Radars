@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 — 2026-07-09
+
+### Fixed
+- Animation counter and VS Code status bar no longer show values above 100% after capping
+
 ## 1.2.0 — 2026-07-09
 
 ### Fixed

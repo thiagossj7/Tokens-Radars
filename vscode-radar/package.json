@@ -2,7 +2,7 @@
   "name": "claude-tokens-radar",
   "displayName": "Claude Sayayin Radar Token",
   "description": "Muestra tu uso del plan de Claude (Sesión 5h y semana 7d) en la barra de estado con Vegeta vigilando.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "kodevo",
   "license": "MIT",
   "icon": "assets/icono-128.png",
