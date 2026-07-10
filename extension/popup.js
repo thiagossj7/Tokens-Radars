@@ -104,7 +104,7 @@ function animarBarra(fillEl, pctEl, util, delayMs) {
   function tick(now) {
     if (now < startTime) { requestAnimationFrame(tick); return; }
     const p = Math.min((now - startTime) / 900, 1);
-    pctEl.textContent = Math.round(p * util * 100) + '%';
+    pctEl.textContent = Math.round(p * capped * 100) + '%';
     if (p < 1) requestAnimationFrame(tick);
     else pctEl.textContent = displayFinal;
   }

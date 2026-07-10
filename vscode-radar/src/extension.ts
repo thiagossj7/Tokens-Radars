@@ -31,7 +31,9 @@ function actualizarStatusBar(datos: DatosUso) {
   const s = datos.session?.utilization ?? 0;
   const w = datos.week?.utilization ?? 0;
   const warning = (s >= 1 || w >= 1) ? ' ⚠' : '';
-  statusBarItem.text = `$(graph) Claude S:${(s * 100).toFixed(0)}% W:${(w * 100).toFixed(0)}%${warning}`;
+  const sCap = Math.min(s, 1);
+  const wCap = Math.min(w, 1);
+  statusBarItem.text = `$(graph) Claude S:${(sCap * 100).toFixed(0)}% W:${(wCap * 100).toFixed(0)}%${warning}`;
   if (s >= 1 || w >= 1) {
     statusBarItem.color = '#ef4444';
   } else if (s >= 0.8 || w >= 0.8) {
