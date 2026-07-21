@@ -103,8 +103,8 @@ async function dispararRuptura(barrasCriticas) {
     if (overlayDismissed) return;
     const nombres = barrasCriticas.map(b => b.nombre);
     overlayMensaje.textContent = nombres.join(' y ') + ' al límite ⚠';
-    const soloSemanal = barrasCriticas.length === 1 && barrasCriticas[0].nombre === 'Semanal';
-    document.getElementById('overlay-gif').src = soloSemanal
+    const soloSesion = barrasCriticas.length === 1 && barrasCriticas[0].nombre === 'Sesión';
+    document.getElementById('overlay-gif').src = soloSesion
       ? window.overGifUri
       : window.scanGifUri;
     overlayEl.classList.remove('oculto');
